@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Data Analysis with R</title>
+  <meta charset="utf-8">
+  <meta name="description" content="Data Analysis with R">
+  <meta name="author" content="Mykola Pavlov">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/ribbons.css"></link>
+
+  
+  <!-- Grab CDN jQuery, fall back to local if offline -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+  <script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery.js"><\/script>')</script> 
+  <script data-main="libraries/frameworks/io2012/js/slides" 
+    src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+  
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+        <slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+    <h1>Data Analysis with R</h1>
+    <h2>Working with Big Data</h2>
+    <p>Mykola Pavlov<br/>Data Scientist at Azzurro.io</p>
+  </hgroup>
+  <article></article>  
+</slide>
+    
+
+    <!-- SLIDES -->
+    <slide class="" id="slide-1" style="background:;">
+  <hgroup>
+    <h2>Course Logistic</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Slides: <a href="http://nikolaypavlov.github.io/da-workshops-10/">http://nikolaypavlov.github.io/da-workshops-10/</a></li>
+<li>Skype Chat: <a href="https://join.skype.com/gjN0CfAd4bhg">https://join.skype.com/gjN0CfAd4bhg</a></li>
+<li><a href="https://s3.amazonaws.com/assets.datacamp.com/img/blog/data+table+cheat+sheet.pdf">data.table cheat sheet</a></li>
+<li><a href="https://github.com/Rdatatable/data.table/wiki/Getting-started">data.table wiki</a></li>
+<li><a href="https://github.com/Rdatatable/data.table/wiki/Benchmarks-%3A-Grouping">Benchmarks data.table vs dplyr vs pandas</a></li>
+<li><a href="http://spark.apache.org/docs/latest/">Spark Documentation</a></li>
+<li>Install the following packages: spark, sparkR, data.table, hflights</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-2" style="background:;">
+  <hgroup>
+    <h2>Topics</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Why Big Data is an issue? </li>
+<li>Intro to the data.table</li>
+<li>What is Spark?</li>
+<li>SparkR</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-3" style="background:;">
+  <hgroup>
+    <h2>Why Big Data is an issue?</h2>
+  </hgroup>
+  <article data-timings="">
+    <p><img src="assets/img/data-size.png" alt="Data set size"></p>
+
+<p>[<a href="http://academictorrents.com/browse.php?sort_field=size&amp;sort_dir=DESC">Academic Torrents</a>]</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-4" style="background:;">
+  <hgroup>
+    <h2>Why Big Data is an issue?</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code class="r">library(hflights)
+object.size(hflights)
+</code></pre>
+
+<pre><code>## 24738416 bytes
+</code></pre>
+
+<ul>
+<li>What if you try to compute dist(hflights)? DON&#39;T DO THIS :) </li>
+</ul>
+
+<p>\[227496 \times 227496 \times 8 \text{bytes} \sim 414 \text{Gb}\]</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-5" style="background:;">
+  <hgroup>
+    <h2>Why to choose data.table?</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>Pros</h3>
+
+<ul>
+<li>Passing by reference vs passing by value </li>
+<li>Very fast</li>
+<li>Compatable with Data Frame</li>
+</ul>
+
+<h3>Const</h3>
+
+<ul>
+<li>DT must fit in RAM</li>
+<li>Need to learn new syntax</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-6" style="background:;">
+  <hgroup>
+    <h2>data.table syntax</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code class="r">DT[i, j, by] 
+</code></pre>
+
+<p>In SQL terminology: </p>
+
+<ul>
+<li>i - corresponds to WHERE</li>
+<li>j - corresponds to SELECT</li>
+<li>by - GROUP BY</li>
+</ul>
+
+<p>&quot;Take DT, subset the rows using i, then calculate j, grouped by by&quot;</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-7" style="background:;">
+  <hgroup>
+    <h2>data.table i, j, by</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code class="r">library(data.table)
+DT &lt;- as.data.table(hflights)
+DT[Month==10, mean(na.omit(AirTime)), by=UniqueCarrier]
+</code></pre>
+
+<pre><code>##     UniqueCarrier        V1
+##  1:            AA  68.76471
+##  2:            AS 255.29032
+##  3:            B6 176.93548
+##  4:            CO 141.52861
+##  5:            DL  92.76824
+##  6:            WN  87.14947
+##  7:            XE  82.44422
+##  8:            OO 114.98865
+##  9:            UA 166.18354
+## 10:            US 137.46078
+## 11:            EV 113.12273
+## 12:            F9 126.55357
+## 13:            FL  90.85561
+## 14:            MQ 100.13054
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-8" style="background:;">
+  <hgroup>
+    <h2>The i part</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>Used to subset on rows</h3>
+
+<pre><code class="r">DT[3:5,]
+DT[UniqueCarrier == &quot;AA&quot;]
+DT[.N-1]
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-9" style="background:;">
+  <hgroup>
+    <h2>The j part</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>Used to select columns and apply functions</h3>
+
+<pre><code class="r">DT[, mean(na.omit(DepDelay))]
+</code></pre>
+
+<pre><code>## [1] 9.444951
+</code></pre>
+
+<h3>Do somthing with several columns using .()</h3>
+
+<pre><code class="r">DT[, .(departure=mean(na.omit(DepDelay)), arrival=mean(na.omit(ArrDelay)))]
+</code></pre>
+
+<pre><code>##    departure  arrival
+## 1:  9.444951 7.094334
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-10" style="background:;">
+  <hgroup>
+    <h2>The by part</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code class="r">DT[, mean(na.omit(DepDelay)), by=Origin]
+</code></pre>
+
+<pre><code>##    Origin        V1
+## 1:    IAH  8.436951
+## 2:    HOU 12.837873
+</code></pre>
+
+<pre><code class="r">DT[, .(AVG_delay = mean(na.omit(DepDelay))), by=.(Origin, Weekend = DayOfWeek &gt;= 6)]
+</code></pre>
+
+<pre><code>##    Origin Weekend AVG_delay
+## 1:    IAH    TRUE  8.286543
+## 2:    IAH   FALSE  8.492484
+## 3:    HOU    TRUE 10.965384
+## 4:    HOU   FALSE 13.433994
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-11" style="background:;">
+  <hgroup>
+    <h2>In-place update with :=</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>Add new column</h3>
+
+<pre><code class="r">DT[, Discrete_Distance  := cut(Distance, breaks=20)]
+</code></pre>
+
+<h3>Update existing column</h3>
+
+<pre><code class="r">DT[, ActualElapsedTime := ActualElapsedTime / 60]
+</code></pre>
+
+<h3>Remove multiple columns</h3>
+
+<pre><code class="r">DT[, c(&quot;TaxiIn&quot;, &quot;TaxiOut&quot;) := NULL]
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-12" style="background:;">
+  <hgroup>
+    <h2>Indexing and keys</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code class="r">setkey(DT, Year, Month)
+DT[.(2011, c(3,4,5)), sum(Cancelled)]
+</code></pre>
+
+<pre><code>## [1] 689
+</code></pre>
+
+<pre><code class="r">DT[.(2011, c(3,4,5)), sum(Cancelled), by=.EACHI]
+</code></pre>
+
+<pre><code>##    Year Month  V1
+## 1: 2011     3 159
+## 2: 2011     4 251
+## 3: 2011     5 279
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-13" style="background:;">
+  <hgroup>
+    <h2>Advanced function application with .SD</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code class="r">DT[, lapply(.SD[, .(AirTime, ArrDelay, DepDelay)], mean, na.rm=T), by=.(Year, Month)]
+</code></pre>
+
+<pre><code>##     Year Month  AirTime  ArrDelay  DepDelay
+##  1: 2011     1 104.1106  4.926065  7.930889
+##  2: 2011     2 105.0597  6.349233  9.244213
+##  3: 2011     3 108.2009  7.892718  9.746544
+##  4: 2011     4 109.2508 11.088744 10.507546
+##  5: 2011     5 110.3382 13.125916 12.198561
+##  6: 2011     6 110.2511 10.836983 12.177978
+##  7: 2011     7 109.2059  9.623474 12.451282
+##  8: 2011     8 108.3067  4.533096  7.648850
+##  9: 2011     9 107.8786  4.243050  6.332387
+## 10: 2011    10 107.9135  3.723636  6.807661
+## 11: 2011    11 107.5924  3.221324  6.732064
+## 12: 2011    12 108.9317  5.013244 10.992983
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-14" style="background:;">
+  <hgroup>
+    <h2>Exercise</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li><p>Find the worst carrier in terms of average arrival delay.</p></li>
+<li><p>Which day of week is on average the busiest in terms of departure delays in the George Bush Intercontinental airport (IAH)? </p></li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-15" style="background:;">
+  <hgroup>
+    <h2>What is Spark?</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Apache Spark is a fast and general engine for large-scale data processing</p>
+
+<p><img src="assets/img/spark-libs.png" alt="Spark Libs"></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-16" style="background:;">
+  <hgroup>
+    <h2>What is Spark?</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Spark runs on Hadoop, Mesos, standalone, or in the cloud. It can access diverse data sources including HDFS, Cassandra, HBase, and S3.</p>
+
+<p><img src="assets/img/spark-cmp.png" alt="Spark Compatabilities"></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-17" style="background:;">
+  <hgroup>
+    <h2>Hadoop vs Spark</h2>
+  </hgroup>
+  <article data-timings="">
+    <p><img src="assets/img/data-sharing-mapreduce.png" alt="Hadoop data sharing"></p>
+
+<p>[<a href="http://www.slideshare.net/jetlore/spark-and-shark-lightningfast-analytics-over-hadoop-and-hive-data">Spark and Shark: Lightning-Fast Analytics over Hadoop and Hive Data</a>]</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-18" style="background:;">
+  <hgroup>
+    <h2>Hadoop vs Spark</h2>
+  </hgroup>
+  <article data-timings="">
+    <p><img src="assets/img/data-sharing-spark.png" alt="Spark data sharing"></p>
+
+<p>[<a href="http://www.slideshare.net/jetlore/spark-and-shark-lightningfast-analytics-over-hadoop-and-hive-data">Spark and Shark: Lightning-Fast Analytics over Hadoop and Hive Data</a>]</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-19" style="background:;">
+  <hgroup>
+    <h2>Programming Model:</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Spark provides two main abstractions for parallel programming: </p>
+
+<ul>
+<li>resilient distributed datasets (RDD) </li>
+<li>parallel operations on these datasets</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-20" style="background:;">
+  <hgroup>
+    <h2>Parallel operations</h2>
+  </hgroup>
+  <article data-timings="">
+    <p><img src="assets/img/spark-operations.png" alt="Spark Operations"></p>
+
+<p>[Matei Zaharia, Mosharaf Chowdhury, Tathagata Das, Ankur Dave, Justin Ma, Murphy McCauley, Michael J. Franklin, Scott Shenker, Ion Stoica. &quot;Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing&quot;]</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-21" style="background:;">
+  <hgroup>
+    <h2>Spark runtime</h2>
+  </hgroup>
+  <article data-timings="">
+    <p><img src="assets/img/spark-runtime.png" alt="Spark Runtime"></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-22" style="background:;">
+  <hgroup>
+    <h2>Available APIs</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li><a href="https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.package">Scala</a></li>
+<li><a href="https://spark.apache.org/docs/latest/api/java/index.html">Java</a></li>
+<li><a href="https://spark.apache.org/docs/latest/api/python/index.html">Python</a></li>
+<li><a href="https://spark.apache.org/docs/latest/api/R/index.html">R</a></li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-23" style="background:;">
+  <hgroup>
+    <h2>Examples in spark_examples.r</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-24" style="background:;">
+  <hgroup>
+    <h2>Course Logistic</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Slides: <a href="http://nikolaypavlov.github.io/da-workshops-10/">http://nikolaypavlov.github.io/da-workshops-10/</a></li>
+<li>Skype Chat: <a href="https://join.skype.com/gjN0CfAd4bhg">https://join.skype.com/gjN0CfAd4bhg</a></li>
+<li><a href="https://s3.amazonaws.com/assets.datacamp.com/img/blog/data+table+cheat+sheet.pdf">data.table cheat sheet</a></li>
+<li><a href="https://github.com/Rdatatable/data.table/wiki/Getting-started">data.table wiki</a></li>
+<li><a href="https://github.com/Rdatatable/data.table/wiki/Benchmarks-%3A-Grouping">Benchmarks data.table vs dplyr vs pandas</a></li>
+<li><a href="http://spark.apache.org/docs/latest/">Spark Documentation</a></li>
+<li>Install the following packages: spark, sparkR, data.table, hflights</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-25" style="background:;">
+  <hgroup>
+    <h2>We are hiring!</h2>
+  </hgroup>
+  <article data-timings="">
+    <h3>If you like Data Analysis, please drop me your CV at <a href="mailto:mykola@azzurro.io">mykola@azzurro.io</a></h3>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+    <slide class="backdrop"></slide>
+  </slides>
+  <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
+    <ul>
+      <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=1 title='Course Logistic'>
+         1
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=2 title='Topics'>
+         2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='Why Big Data is an issue?'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='Why Big Data is an issue?'>
+         4
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=5 title='Why to choose data.table?'>
+         5
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=6 title='data.table syntax'>
+         6
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=7 title='data.table i, j, by'>
+         7
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=8 title='The i part'>
+         8
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=9 title='The j part'>
+         9
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=10 title='The by part'>
+         10
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=11 title='In-place update with :='>
+         11
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=12 title='Indexing and keys'>
+         12
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=13 title='Advanced function application with .SD'>
+         13
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=14 title='Exercise'>
+         14
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=15 title='What is Spark?'>
+         15
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=16 title='What is Spark?'>
+         16
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=17 title='Hadoop vs Spark'>
+         17
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=18 title='Hadoop vs Spark'>
+         18
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=19 title='Programming Model:'>
+         19
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=20 title='Parallel operations'>
+         20
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=21 title='Spark runtime'>
+         21
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=22 title='Available APIs'>
+         22
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=23 title='Examples in spark_examples.r'>
+         23
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=24 title='Course Logistic'>
+         24
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=25 title='We are hiring!'>
+         25
+      </a>
+    </li>
+  </ul>
+  </div>  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+  <!-- Load Javascripts for Widgets -->
+  
+  <!-- MathJax: Fall back to local if CDN offline but local image fonts are not supported (saves >100MB) -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$','$'], ['\\(','\\)']],
+        processEscapes: true
+      }
+    });
+  </script>
+  <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <!-- <script src="https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  </script> -->
+  <script>window.MathJax || document.write('<script type="text/x-mathjax-config">MathJax.Hub.Config({"HTML-CSS":{imageFont:null}});<\/script><script src="libraries/widgets/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"><\/script>')
+</script>
+<!-- LOAD HIGHLIGHTER JS FILES -->
+  <script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <!-- DONE LOADING HIGHLIGHTER JS FILES -->
+   
+  </html>

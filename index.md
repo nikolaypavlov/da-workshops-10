@@ -18,7 +18,7 @@ knit        : slidify::knit2slides
 * [data.table wiki](https://github.com/Rdatatable/data.table/wiki/Getting-started)
 * [Benchmarks data.table vs dplyr vs pandas](https://github.com/Rdatatable/data.table/wiki/Benchmarks-%3A-Grouping)
 * [Spark Documentation](http://spark.apache.org/docs/latest/)
-* Clone [my repo](https://github.com/nikolaypavlov/da-workshops-10) with git or [download in ZIP format](https://github.com/nikolaypavlov/da-workshops-10/archive/gh-pages.zip)
+* Clone [my repo](https://github.com/nikolaypavlov/da-workshops-10) using git or [download in ZIP format](https://github.com/nikolaypavlov/da-workshops-10/archive/gh-pages.zip)
 * Install the following packages: spark, sparkR, data.table, hflights
 
 ---
